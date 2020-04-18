@@ -136,7 +136,7 @@ module Mondrian
 
         if get_members
           rv[:members] = self.members
-                           .uniq { |m| m.property_value('MEMBER_KEY') }
+                           .uniq { |m| m.property_value('MEMBER_UNIQUE_NAME') }
                            .map { |m|
             m.to_h(member_properties, member_caption, get_children)
               .merge({ancestors: m.ancestors.map(&:to_h)})
