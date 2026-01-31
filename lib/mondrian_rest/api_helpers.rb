@@ -4,25 +4,32 @@ module Mondrian::REST
   end
 
   module APIHelpers
-    @@olap = nil
-    @@mdx_parser = nil
+    @@olap_connections = {}
+    @@mdx_parsers = {}
+
+    def connection_key
+      params = env['mondrian-olap.params']
+      params[:catalog] || params[:catalog_content].to_s[0..100] || params.hash.to_s
+    end
 
     def olap
-      if @@olap.nil?
-        @@olap = Mondrian::OLAP::Connection.new(env['mondrian-olap.params'])
-        @@olap.connect
+      key = connection_key
+      if @@olap_connections[key].nil?
+        @@olap_connections[key] = Mondrian::OLAP::Connection.new(env['mondrian-olap.params'])
+        @@olap_connections[key].connect
       end
-      @@olap
+      @@olap_connections[key]
     end
 
     ##
     # Returns an instance of org.olap4j.mdx.parser.MdxParser
     def mdx_parser
-      if @@mdx_parser.nil?
-        @@mdx_parser = olap.raw_connection.getParserFactory
+      key = connection_key
+      if @@mdx_parsers[key].nil?
+        @@mdx_parsers[key] = olap.raw_connection.getParserFactory
                        .createMdxParser(olap.raw_connection)
       end
-      @@mdx_parser
+      @@mdx_parsers[key]
     end
 
     def olap_flush
